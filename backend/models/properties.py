@@ -55,7 +55,10 @@ class Property(SQLModel, table=True):
     sale_or_rent: SaleRent = Field(nullable=False)
     agent_id: UUID = Field(foreign_key="users.id", nullable=False)
     agent: Optional["User"] = Relationship(back_populates="properties")
-    images: List["PropertyImage"] = Relationship(back_populates="property")
+    images: List["PropertyImage"] = Relationship(
+        back_populates="property",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
     def __repr__(self):
         return f"<Property(title={self.title}, city={self.city}, price={self.price})>"

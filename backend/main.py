@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.properties import property_router
 from routes.users import user_router
 from routes.auth import auth_router
+from routes.contact import contact_router
 from contextlib import asynccontextmanager
 from core.init_db import init_db
 import os
@@ -44,6 +45,7 @@ app.include_router(
 )
 app.include_router(user_router, prefix=f"/api/{version}/users", tags=["users"])
 app.include_router(auth_router, prefix=f"/api/{version}/auth", tags=["auth"])
+app.include_router(contact_router, prefix=f"/api/{version}", tags=["contact"])
 
 
 if __name__ == "__main__":

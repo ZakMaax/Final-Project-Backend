@@ -90,7 +90,7 @@ class PropertyService:
             select(Property)
             .options(selectinload(Property.images))  # type: ignore
             .where(
-                Property.featured == True,
+                Property.featured,
                 Property.status == PropertyStatus.available,
             )
         )
@@ -155,7 +155,7 @@ class PropertyService:
             )
         return {"message": "Property Created Successfully"}
 
-    async def delete_property(self, property_id: int, session: AsyncSession) -> None:
+    async def delete_property(self, property_id: str, session: AsyncSession) -> None:
         result = await session.execute(
             select(Property).where(Property.id == property_id)
         )
@@ -164,8 +164,12 @@ class PropertyService:
         if property is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Book with id: {property_id} is not found",
+                detail=f"Property with id: {property_id} is not found",
             )
+
+        property_folder = f"uploads/properties/{property_id}"
+        if os.path.exists(property_folder):
+            shutil.rmtree(property_folder)
 
         await session.delete(property)
         await session.commit()

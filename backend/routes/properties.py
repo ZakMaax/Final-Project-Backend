@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends, status, Form, UploadFile
+from fastapi import APIRouter, HTTPException, Query, Depends, status, Form, UploadFile
 from sqlmodel.ext.asyncio.session import AsyncSession
 from schemas.property_schemas import (
     PropertyCreate,
@@ -12,7 +12,9 @@ from core.init_db import get_session
 from typing import List, Optional
 from pydantic import PositiveInt, PositiveFloat
 from services.property_service import property_service
+from security.auth import require_admin
 from uuid import UUID
+from schemas.user_schemas import UserRead
 
 property_router = APIRouter()
 
@@ -34,6 +36,7 @@ async def create_property(
     sale_or_rent: SaleRent = Form(...),
     agent_id: UUID = Form(...),
     files: List[UploadFile] = Form(...),
+    current_user: UserRead = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ):
     property_data = PropertyCreate(
@@ -98,7 +101,9 @@ async def get_featured_properties(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_property(
-    property_id: int, session: AsyncSession = Depends(get_session)
+    property_id: str,
+    current_user: UserRead = Depends(require_admin),
+    session: AsyncSession = Depends(get_session),
 ) -> None:
     await property_service.delete_property(property_id, session)
     return None
@@ -122,6 +127,7 @@ async def update_property(
     sale_or_rent: SaleRent = Form(...),
     agent_id: UUID = Form(...),
     files: List[UploadFile] = Form(...),
+    current_user: UserRead = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ):
     property_data = PropertyCreate(
@@ -150,6 +156,7 @@ async def update_property(
 async def update_featured(
     property_id: str,
     featured_update: FeaturedUpdate,
+    current_user: UserRead = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ) -> PropertyResponse:
     updated_property = await property_service.update_featured(
@@ -162,6 +169,7 @@ async def update_featured(
 async def update_status(
     property_id: str,
     status_update: StatusUpdate,
+    current_user: UserRead = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ):
     await property_service.update_status(property_id, status_update.status, session)
