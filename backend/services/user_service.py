@@ -139,6 +139,28 @@ class UserService:
         await session.refresh(user)
         return UserRead.model_validate(user.model_dump())
 
+    async def update_profile(
+        self,
+        user_id: str,
+        username: str,
+        old_password: str,
+        new_password: str,
+        session: AsyncSession,
+    ):
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        # Check old password
+        if not verify_password(old_password, user.hashed_password):
+            raise HTTPException(status_code=400, detail="Old password is incorrect")
+        # Update username and password
+        user.username = username
+        user.hashed_password = hash_password(new_password)
+        await session.commit()
+        await session.refresh(user)
+        return {"message": "Profile updated successfully"}
+
     async def delete_user(self, user_id, session: AsyncSession):
         user = await self.get_user(user_id, session)
         if user.avatar_url:

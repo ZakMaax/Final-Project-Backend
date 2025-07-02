@@ -1,6 +1,11 @@
 from typing import AsyncGenerator
+from sqlmodel import SQLModel
 from .config import config
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from models.users import User
+from models.properties import Property, PropertyImage
+from models.appointments import PropertyAppointment
+
 
 DATABASE_URL = config.DATABASE_URL
 
@@ -21,8 +26,10 @@ async def init_db():
     )
 
     try:
-        async with engine.connect() as conn:
-            print("Database Connected Successfully")
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+            print("Database tables created successfully")
+        print("Database Connected Successfully")
     except Exception as e:
         print(f"Failed to connect to the database: {e}")
 

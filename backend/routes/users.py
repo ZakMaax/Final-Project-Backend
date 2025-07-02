@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, Form, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
-from schemas.user_schemas import UserRead, UserCreate, UserUpdate, Role
+from schemas.user_schemas import (
+    UserRead,
+    UserCreate,
+    UserUpdate,
+    UserProfileUpdate,
+    Role,
+)
 from core.init_db import get_session
 from services.user_service import user_service
 from pydantic import EmailStr
@@ -74,6 +80,17 @@ async def update_user(
         role=role,
     )
     return await user_service.update_user(user_id, user_update_data, avatar, session)
+
+
+@user_router.patch("/profile/{user_id}")
+async def update_profile(
+    user_id: str,
+    data: UserProfileUpdate,
+    session: AsyncSession = Depends(get_session),
+):
+    return await user_service.update_profile(
+        user_id, data.username, data.old_password, data.new_password, session
+    )
 
 
 @user_router.delete("/{user_id}", status_code=204)

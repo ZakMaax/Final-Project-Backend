@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Optional, List
 
 if TYPE_CHECKING:
     from .users import User
+    from .appointments import PropertyAppointment
 
 
 class PropertyType(str, Enum):
@@ -59,6 +60,7 @@ class Property(SQLModel, table=True):
         back_populates="property",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
+    appointments: list["PropertyAppointment"] = Relationship(back_populates="property")
 
     def __repr__(self):
         return f"<Property(title={self.title}, city={self.city}, price={self.price})>"

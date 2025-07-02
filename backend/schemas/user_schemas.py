@@ -28,6 +28,12 @@ class UserUpdate(BaseModel):
     role: Role
 
 
+class UserProfileUpdate(BaseModel):
+    username: str
+    old_password: str
+    new_password: str
+
+
 class UserInDB(BaseModel):
     username: str
     password: str
