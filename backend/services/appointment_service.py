@@ -14,10 +14,17 @@ class AppointmentService:
     async def create_appointment(
         self, appointment_data: AppointmentCreate, session: AsyncSession
     ):
-        # Ensure datetime is timezone-aware (UTC)
+        # Define UTC+03:00 timezone
+        tz = timezone(timedelta(hours=3))
         start = appointment_data.appointment_datetime
+
+        # Convert to UTC+03:00 and make naive (strip tzinfo for DB)
         if start.tzinfo is not None:
-            start = start.astimezone(timezone.utc).replace(tzinfo=None)
+            start = start.astimezone(tz).replace(tzinfo=None)
+        else:
+            # Assume naive datetimes are already in UTC+03:00
+            pass
+
         end = start + timedelta(minutes=30)
 
         overlap_stmt = select(PropertyAppointment).where(
@@ -34,7 +41,7 @@ class AppointmentService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Time already booked for this property, please pick another time.",
             )
-        appointment_data_dict = appointment_data.dict()
+        appointment_data_dict = appointment_data.model_dump()
         appointment_data_dict["appointment_datetime"] = start
         appointment = PropertyAppointment(**appointment_data_dict)
         session.add(appointment)
@@ -67,7 +74,9 @@ class AppointmentService:
                     "agent_id": agent.id,
                     "agent_name": getattr(
                         agent, "name", getattr(agent, "full_name", "")
-                    ),
+                    )
+                    if agent
+                    else "N/A",
                     "appointment_status": appointment.appointment_status,
                     "id": appointment.id,
                 }

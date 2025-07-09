@@ -1,6 +1,7 @@
 import os
 import shutil
 from typing import Optional
+from uuid import UUID
 from models.properties import Property, PropertyImage
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from schemas.property_schemas import PropertyCreate, PropertyResponse, PropertyStatus
@@ -155,7 +156,7 @@ class PropertyService:
             )
         return {"message": "Property Created Successfully"}
 
-    async def delete_property(self, property_id: str, session: AsyncSession) -> None:
+    async def delete_property(self, property_id: UUID, session: AsyncSession) -> None:
         result = await session.execute(
             select(Property).where(Property.id == property_id)
         )

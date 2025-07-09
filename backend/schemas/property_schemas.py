@@ -59,7 +59,7 @@ class PropertyResponse(BaseModel):
     floor: Optional[PositiveInt]
     type: PropertyType
     sale_or_rent: SaleRent
-    agent_id: UUID
+    agent_id: Optional[UUID] = None
     published_date: datetime
     featured: bool
     status: PropertyStatus

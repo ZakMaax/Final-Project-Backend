@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Column, Relationship
+from sqlmodel import SQLModel, Field, Column, Relationship, ForeignKey
 import sqlalchemy.dialects.postgresql as pg
 from pydantic import PositiveFloat, PositiveInt
 from datetime import datetime
@@ -34,7 +34,9 @@ class Property(SQLModel, table=True):
 
     id: Optional[UUID] = Field(
         default_factory=uuid4,
-        sa_column=Column(pg.UUID, primary_key=True, index=True, nullable=False),
+        sa_column=Column(
+            pg.UUID(as_uuid=True), primary_key=True, index=True, nullable=False
+        ),
     )
     title: str = Field(nullable=False)
     description: str = Field(sa_column=Column(pg.TEXT, nullable=False))
@@ -54,13 +56,23 @@ class Property(SQLModel, table=True):
     type: PropertyType = Field(index=True, nullable=False)
     status: PropertyStatus = Field(default=PropertyStatus.available)
     sale_or_rent: SaleRent = Field(nullable=False)
-    agent_id: UUID = Field(foreign_key="users.id", nullable=False)
+    agent_id: Optional[UUID] = Field(
+        default=None,
+        sa_column=Column(
+            pg.UUID(as_uuid=True),
+            ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+    )
     agent: Optional["User"] = Relationship(back_populates="properties")
     images: List["PropertyImage"] = Relationship(
         back_populates="property",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
-    appointments: list["PropertyAppointment"] = Relationship(back_populates="property")
+    appointments: list["PropertyAppointment"] = Relationship(
+        back_populates="property",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
     def __repr__(self):
         return f"<Property(title={self.title}, city={self.city}, price={self.price})>"
@@ -70,10 +82,18 @@ class PropertyImage(SQLModel, table=True):
     __tablename__ = "property_images"  # type: ignore
     id: Optional[UUID] = Field(
         default_factory=uuid4,
-        sa_column=Column(pg.UUID, primary_key=True, index=True, nullable=False),
+        sa_column=Column(
+            pg.UUID(as_uuid=True), primary_key=True, index=True, nullable=False
+        ),
     )
     file_name: str = Field(nullable=False)
-    property_id: UUID = Field(foreign_key="properties.id", nullable=False)
+    property_id: UUID = Field(
+        sa_column=Column(
+            pg.UUID(as_uuid=True),
+            ForeignKey("properties.id", ondelete="CASCADE"),
+            nullable=False,
+        )
+    )
     property: "Property" = Relationship(back_populates="images")
 
     def __repr__(self):

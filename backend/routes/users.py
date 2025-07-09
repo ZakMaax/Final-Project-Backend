@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, Form, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -95,7 +96,7 @@ async def update_profile(
 
 @user_router.delete("/{user_id}", status_code=204)
 async def delete_user(
-    user_id: str,
+    user_id: UUID,
     session: AsyncSession = Depends(get_session),
 ):
     try:

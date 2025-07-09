@@ -101,12 +101,11 @@ async def get_featured_properties(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_property(
-    property_id: str,
+    property_id: UUID,
     current_user: UserRead = Depends(require_admin),
     session: AsyncSession = Depends(get_session),
 ) -> None:
     await property_service.delete_property(property_id, session)
-    return None
 
 
 @property_router.put("/property/{id}")
